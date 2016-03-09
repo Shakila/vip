@@ -41,6 +41,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -152,7 +157,6 @@ public class SemanticVIPAuthenticator extends OpenIDConnectAuthenticator impleme
                         String p12file = authenticatorProperties.get(SemanticVIPAuthenticatorConstants.VIP_P12FILE);
                         String p12password = authenticatorProperties.get(SemanticVIPAuthenticatorConstants.VIP_P12PASSWORD);
                         VIPManager.setHttpsClientCert(p12file, p12password);
-
                         String secretCode = request.getParameter(SemanticVIPAuthenticatorConstants.SECURITY_CODE);
                         VIPManager.invokeSOAP(tokenId, secretCode);
                     }
@@ -164,7 +168,8 @@ public class SemanticVIPAuthenticator extends OpenIDConnectAuthenticator impleme
         } catch (UserStoreException e) {
             log.error("Cannot find the user claim for VIP Credential ID", e);
             throw new AuthenticationFailedException("Cannot find the user claim for VIP Credential ID " + e.getMessage(), e);
-        } catch (Exception e) {
+        } catch (KeyStoreException | NoSuchAlgorithmException | IOException | CertificateException
+                | UnrecoverableKeyException | KeyManagementException e) {
             log.error("Error while adding certificate", e);
             throw new AuthenticationFailedException("Error while adding certificate", e);
         }

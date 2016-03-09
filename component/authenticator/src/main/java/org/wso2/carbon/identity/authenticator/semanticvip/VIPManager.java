@@ -39,12 +39,9 @@ import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
 import javax.xml.soap.SOAPException;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.KeyStore;
-import java.security.SecureRandom;
+import java.io.*;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.util.Properties;
 
 public class VIPManager {
@@ -57,8 +54,9 @@ public class VIPManager {
      * @param certPassword    Password of certificate
      * @throws Exception
      */
-    public static void setHttpsClientCert(String certificateFile, String certPassword)
-            throws Exception {
+    public static void setHttpsClientCert(String certificateFile, String certPassword) throws KeyStoreException,
+            NoSuchAlgorithmException, IOException, CertificateException, UnrecoverableKeyException,
+            KeyManagementException {
         if (certificateFile == null || !new File(certificateFile).exists()) {
             return;
         }

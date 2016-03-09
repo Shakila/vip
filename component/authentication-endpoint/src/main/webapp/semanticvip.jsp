@@ -87,7 +87,7 @@
                 <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-4 col-centered wr-content wr-login col-centered">
                     <div>
                         <h2 class="wr-title blue-bg padding-double white boarder-bottom-blue margin-none">
-                            VIP Verification &nbsp;&nbsp;</h2>
+                            <img src="images/vip.png" style="float:left;" width="50" height="50"/> Authentication &nbsp;&nbsp;</h2>
                     </div>
                     <div class="boarder-all ">
                         <div class="clearfix"></div>
@@ -147,18 +147,12 @@
     <script type="text/javascript">
     $(document).ready(function() {
     	$('#authenticate').click(function() {
-            var code = document.getElementById("OTPCode").value;
+            var code = document.getElementById("SecurityCode").value;
             if (code == "") {
                 document.getElementById('alertDiv').innerHTML = '<div id="error-msg" class="alert alert-danger">Please enter the code!</div>';
             } else {
 	            $('#codeForm').submit();
 	        }
-    	});
-    });
-    $(document).ready(function() {
-    	$('#resendCodeLinkDiv').click(function() {
-	        document.getElementById("resendCode").value = "true";
-	        $('#codeForm').submit();
     	});
     });
     </script>
