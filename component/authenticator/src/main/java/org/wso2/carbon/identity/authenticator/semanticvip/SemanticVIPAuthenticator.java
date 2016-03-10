@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -40,16 +40,9 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Authenticator of SemanticVIP
@@ -80,15 +73,37 @@ public class SemanticVIPAuthenticator extends OpenIDConnectAuthenticator impleme
             String p12file = authenticatorProperties.get(SemanticVIPAuthenticatorConstants.VIP_P12FILE);
             String p12password = authenticatorProperties.get(SemanticVIPAuthenticatorConstants.VIP_P12PASSWORD);
             if (StringUtils.isNotEmpty(p12file) && StringUtils.isNotEmpty(p12password)) {
-                Properties vipProperties = new Properties();
-                String resourceName = SemanticVIPAuthenticatorConstants.PROPERTIES_FILE;
-                ClassLoader loader = Thread.currentThread().getContextClassLoader();
-                InputStream resourceStream = loader.getResourceAsStream(resourceName);
+                String tokenId;
+                String username = null;
+                for (Integer stepMap : context.getSequenceConfig().getStepMap().keySet()) {
+                    if (context.getSequenceConfig().getStepMap().get(stepMap).getAuthenticatedUser() != null &&
+                            context.getSequenceConfig().getStepMap().get(stepMap).getAuthenticatedAutenticator()
+                                    .getApplicationAuthenticator() instanceof LocalApplicationAuthenticator) {
+                        username =
+                                String.valueOf(context.getSequenceConfig().getStepMap().get(stepMap).getAuthenticatedUser());
+                        break;
+                    }
+                }
+                UserRealm userRealm;
+                String tenantDomain = MultitenantUtils.getTenantDomain(username);
+                int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+                RealmService realmService = IdentityTenantUtil.getRealmService();
                 try {
-                    vipProperties.load(resourceStream);
-                } catch (IOException e) {
-                    log.error("Unable to load the properties file", e);
-                    throw new AuthenticationFailedException("Unable to load the properties file", e);
+                    userRealm = (UserRealm) realmService.getTenantUserRealm(tenantId);
+                } catch (org.wso2.carbon.user.api.UserStoreException e) {
+                    throw new AuthenticationFailedException("Cannot find the user realm", e);
+                }
+                username = MultitenantUtils.getTenantAwareUsername(String.valueOf(username));
+                if (userRealm != null) {
+                    tokenId = userRealm.getUserStoreManager()
+                            .getUserClaimValue(username, SemanticVIPAuthenticatorConstants.VIP_CREDENTIAL_ID_CLAIM,
+                                    null).toString();
+                    if (StringUtils.isEmpty(tokenId)) {
+                        log.error("The Credential ID can not be null.");
+                        throw new AuthenticationFailedException("The Credential ID can not be null.");
+                    } else {
+                        context.setProperty(SemanticVIPAuthenticatorConstants.TOKEN_ID, tenantId);
+                    }
                 }
                 String retryParam = "";
                 if (context.isRetrying()) {
@@ -110,6 +125,9 @@ public class SemanticVIPAuthenticator extends OpenIDConnectAuthenticator impleme
             }
         } catch (IOException e) {
             throw new AuthenticationFailedException("Exception while redirecting the page: " + e.getMessage(), e);
+        } catch (UserStoreException e) {
+            log.error("Cannot find the user claim for VIP Credential ID", e);
+            throw new AuthenticationFailedException("Cannot find the user claim for VIP Credential ID " + e.getMessage(), e);
         }
     }
 
@@ -125,53 +143,20 @@ public class SemanticVIPAuthenticator extends OpenIDConnectAuthenticator impleme
                 throw new InvalidCredentialsException("Security Code cannot not be null");
             }
             Map<String, String> authenticatorProperties = context.getAuthenticatorProperties();
-            String tokenId;
-            String username = null;
-            for (Integer stepMap : context.getSequenceConfig().getStepMap().keySet()) {
-                if (context.getSequenceConfig().getStepMap().get(stepMap).getAuthenticatedUser() != null &&
-                        context.getSequenceConfig().getStepMap().get(stepMap).getAuthenticatedAutenticator()
-                                .getApplicationAuthenticator() instanceof LocalApplicationAuthenticator) {
-                    username =
-                            String.valueOf(context.getSequenceConfig().getStepMap().get(stepMap).getAuthenticatedUser());
-                    break;
-                }
-            }
-            if (StringUtils.isNotEmpty(username)) {
-                UserRealm userRealm;
-                String tenantDomain = MultitenantUtils.getTenantDomain(username);
-                int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-                RealmService realmService = IdentityTenantUtil.getRealmService();
-                try {
-                    userRealm = (UserRealm) realmService.getTenantUserRealm(tenantId);
-                } catch (org.wso2.carbon.user.api.UserStoreException e) {
-                    throw new AuthenticationFailedException("Cannot find the user realm", e);
-                }
-                username = MultitenantUtils.getTenantAwareUsername(String.valueOf(username));
-                if (userRealm != null) {
-                    tokenId = userRealm.getUserStoreManager()
-                            .getUserClaimValue(username, SemanticVIPAuthenticatorConstants.VIP_CREDENTIAL_ID_CLAIM, null).toString();
-                    if (StringUtils.isEmpty(tokenId)) {
-                        log.error("The Credential ID can not be null.");
-                        throw new AuthenticationFailedException("The Credential ID can not be null.");
-                    } else {
-                        String p12file = authenticatorProperties.get(SemanticVIPAuthenticatorConstants.VIP_P12FILE);
-                        String p12password = authenticatorProperties.get(SemanticVIPAuthenticatorConstants.VIP_P12PASSWORD);
-                        VIPManager.setHttpsClientCert(p12file, p12password);
-                        String secretCode = request.getParameter(SemanticVIPAuthenticatorConstants.SECURITY_CODE);
-                        VIPManager.invokeSOAP(tokenId, secretCode);
-                    }
-                }
+            String tokenId = context.getProperty(SemanticVIPAuthenticatorConstants.TOKEN_ID).toString();
+            if (StringUtils.isEmpty(tokenId)) {
+                log.error("The Credential ID can not be null.");
+                throw new AuthenticationFailedException("The Credential ID can not be null.");
+            } else {
+                String p12file = authenticatorProperties.get(SemanticVIPAuthenticatorConstants.VIP_P12FILE);
+                String p12password = authenticatorProperties.get(SemanticVIPAuthenticatorConstants.VIP_P12PASSWORD);
+                String secretCode = request.getParameter(SemanticVIPAuthenticatorConstants.SECURITY_CODE);
+                VIPManager.invokeSOAP(tokenId, secretCode, p12file, p12password);
+//                VIPManager1.invokeSOAP("VSST68749972", "123456", "/media/sf_SharedFoldersToVBox/vip_cert.p12", "sVIPcrt1");
             }
         } catch (AuthenticationFailedException e) {
             log.error(e);
             throw new AuthenticationFailedException(e.getMessage());
-        } catch (UserStoreException e) {
-            log.error("Cannot find the user claim for VIP Credential ID", e);
-            throw new AuthenticationFailedException("Cannot find the user claim for VIP Credential ID " + e.getMessage(), e);
-        } catch (KeyStoreException | NoSuchAlgorithmException | IOException | CertificateException
-                | UnrecoverableKeyException | KeyManagementException e) {
-            log.error("Error while adding certificate", e);
-            throw new AuthenticationFailedException("Error while adding certificate", e);
         }
     }
 

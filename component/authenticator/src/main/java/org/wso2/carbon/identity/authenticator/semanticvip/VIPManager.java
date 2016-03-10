@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.authenticator.semanticvip;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -27,21 +26,32 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 
-import javax.xml.soap.MimeHeaders;
 import javax.xml.soap.SOAPConnection;
-import javax.xml.soap.SOAPConnectionFactory;
 import javax.xml.soap.Name;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.MimeHeaders;
 import javax.xml.soap.SOAPBody;
 import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPEnvelope;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
+import javax.xml.soap.SOAPConnectionFactory;
 import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPMessage;
 
-import java.io.*;
-import java.security.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.security.SecureRandom;
+import java.security.KeyStoreException;
+import java.security.UnrecoverableKeyException;
+
+
 import java.util.Properties;
 
 public class VIPManager {
@@ -74,10 +84,11 @@ public class VIPManager {
     /**
      * Method to create SOAP connection
      */
-    public static void invokeSOAP(String tokenId, String securityCode) throws AuthenticationFailedException {
+    public static void invokeSOAP(String tokenId, String securityCode, String p12file, String p12password) throws AuthenticationFailedException {
         SOAPConnectionFactory soapConnectionFactory = null;
         SOAPConnection soapConnection = null;
         try {
+            setHttpsClientCert(p12file, p12password);
             Properties vipProperties = new Properties();
             String resourceName = SemanticVIPAuthenticatorConstants.PROPERTIES_FILE;
             ClassLoader loader = Thread.currentThread().getContextClassLoader();
@@ -88,29 +99,40 @@ public class VIPManager {
                 log.error("Unable to load the properties file", e);
                 throw new AuthenticationFailedException("Unable to load the properties file", e);
             }
-
-            SOAPMessage soapMessage = null;
+            SOAPMessage soapMessage;
             soapConnectionFactory = SOAPConnectionFactory.newInstance();
             soapConnection = soapConnectionFactory.createConnection();
-            String url = vipProperties.getProperty(SemanticVIPAuthenticatorConstants.VIP_URL);
-            soapMessage = validationSOAPMessage(vipProperties, tokenId, securityCode);
-
-            String reasonCode = null;
-            SOAPMessage soapResponse = soapConnection.call(soapMessage, url);
-            if (soapResponse.getSOAPBody().getElementsByTagName("ValidateResponse").getLength() != 0) {
-                reasonCode =
-                        soapResponse.getSOAPBody().getElementsByTagName("ReasonCode").item(0).getTextContent().toString();
-                if (!SemanticVIPAuthenticatorConstants.SUCCESS_CODE.equals(reasonCode)) {
-                    String error = soapResponse.getSOAPBody().getElementsByTagName("StatusMessage").item(0)
-                            .getTextContent().toString();
-                    throw new AuthenticationFailedException("Error occurred while validating the credentials:" + error);
+            if (vipProperties.containsKey(SemanticVIPAuthenticatorConstants.VIP_URL)) {
+                String url = vipProperties.getProperty(SemanticVIPAuthenticatorConstants.VIP_URL);
+                soapMessage = validationSOAPMessage(vipProperties, tokenId, securityCode);
+                if (soapMessage != null) {
+                    String reasonCode;
+                    SOAPMessage soapResponse = soapConnection.call(soapMessage, url);
+                    if (soapResponse.getSOAPBody().getElementsByTagName("ValidateResponse").getLength() != 0) {
+                        reasonCode =
+                                soapResponse.getSOAPBody().getElementsByTagName("ReasonCode").item(0).getTextContent().toString();
+                        if (!SemanticVIPAuthenticatorConstants.SUCCESS_CODE.equals(reasonCode)) {
+                            String error = soapResponse.getSOAPBody().getElementsByTagName("StatusMessage").item(0)
+                                    .getTextContent().toString();
+                            throw new AuthenticationFailedException("Error occurred while validating the credentials:" + error);
+                        }
+                    } else {
+                        throw new AuthenticationFailedException("Unable to find the provisioning ID");
+                    }
+                } else {
+                    throw new AuthenticationFailedException("SOAP message cannot be null");
                 }
             } else {
-                throw new AuthenticationFailedException("Unable to find the provisioning ID");
+                throw new AuthenticationFailedException("VIP endpoint URL is not defined in properties file");
             }
-
         } catch (SOAPException e) {
             throw new AuthenticationFailedException("Error occurred while sending SOAP Request to Server", e);
+        } catch (AuthenticationFailedException e) {
+            throw new AuthenticationFailedException(e.getMessage());
+        } catch (KeyStoreException | NoSuchAlgorithmException | IOException | CertificateException
+                | UnrecoverableKeyException | KeyManagementException e) {
+            log.error("Error while adding certificate", e);
+            throw new AuthenticationFailedException("Error while adding certificate", e);
         } finally {
             try {
                 if (soapConnection != null) {
@@ -123,30 +145,36 @@ public class VIPManager {
     }
 
     private static SOAPMessage validationSOAPMessage(Properties vipProperties, String tokenId, String securityCode)
-            throws SOAPException {
-        MessageFactory messageFactory = MessageFactory.newInstance();
-        SOAPMessage soapMessage = messageFactory.createMessage();
-        SOAPPart soapPart = soapMessage.getSOAPPart();
-        String serverURI = vipProperties.getProperty(SemanticVIPAuthenticatorConstants.SOAP_VIP_NS_URI);
-        SOAPEnvelope envelope = soapPart.getEnvelope();
-        String namespacePrefix = SemanticVIPAuthenticatorConstants.SOAP_NAMESPACE_PREFIX;
-        envelope.addNamespaceDeclaration(SemanticVIPAuthenticatorConstants.SOAP_ENVELOP_NAMESPACE_PREFIX,
-                SemanticVIPAuthenticatorConstants.SOAP_ENVELOP_HEADER);
-        envelope.addNamespaceDeclaration(namespacePrefix, serverURI);
-        SOAPBody soapBody = envelope.getBody();
-        SOAPElement soapBodyElem =
-                soapBody.addChildElement(SemanticVIPAuthenticatorConstants.SOAP_ACTION_VALIDATE, namespacePrefix);
-        Name attributeName = envelope.createName(SemanticVIPAuthenticatorConstants.VERSION);
-        soapBodyElem.addAttribute(attributeName, vipProperties.getProperty(SemanticVIPAuthenticatorConstants.VERSION));
-        SOAPElement soapBodyElem1 =
-                soapBodyElem.addChildElement(SemanticVIPAuthenticatorConstants.TOKEN_ID, namespacePrefix);
-        soapBodyElem1.addTextNode(tokenId);
-        SOAPElement soapBodyElem2 =
-                soapBodyElem.addChildElement(SemanticVIPAuthenticatorConstants.OTP, namespacePrefix);
-        soapBodyElem2.addTextNode(securityCode);
-        MimeHeaders headers = soapMessage.getMimeHeaders();
-        headers.addHeader(SemanticVIPAuthenticatorConstants.SOAP_ACTION, serverURI);
-        soapMessage.saveChanges();
+            throws SOAPException, AuthenticationFailedException {
+        SOAPMessage soapMessage = null;
+        if (vipProperties.containsKey(SemanticVIPAuthenticatorConstants.SOAP_VIP_NS_URI)
+                && vipProperties.containsKey(SemanticVIPAuthenticatorConstants.VERSION)) {
+            MessageFactory messageFactory = MessageFactory.newInstance();
+            soapMessage = messageFactory.createMessage();
+            SOAPPart soapPart = soapMessage.getSOAPPart();
+            String serverURI = vipProperties.getProperty(SemanticVIPAuthenticatorConstants.SOAP_VIP_NS_URI);
+            SOAPEnvelope envelope = soapPart.getEnvelope();
+            String namespacePrefix = SemanticVIPAuthenticatorConstants.SOAP_NAMESPACE_PREFIX;
+            envelope.addNamespaceDeclaration(SemanticVIPAuthenticatorConstants.SOAP_ENVELOP_NAMESPACE_PREFIX,
+                    SemanticVIPAuthenticatorConstants.SOAP_ENVELOP_HEADER);
+            envelope.addNamespaceDeclaration(namespacePrefix, serverURI);
+            SOAPBody soapBody = envelope.getBody();
+            SOAPElement soapBodyElem =
+                    soapBody.addChildElement(SemanticVIPAuthenticatorConstants.SOAP_ACTION_VALIDATE, namespacePrefix);
+            Name attributeName = envelope.createName(SemanticVIPAuthenticatorConstants.VERSION);
+            soapBodyElem.addAttribute(attributeName, vipProperties.getProperty(SemanticVIPAuthenticatorConstants.VERSION));
+            SOAPElement soapBodyElem1 =
+                    soapBodyElem.addChildElement(SemanticVIPAuthenticatorConstants.TOKEN_ID, namespacePrefix);
+            soapBodyElem1.addTextNode(tokenId);
+            SOAPElement soapBodyElem2 =
+                    soapBodyElem.addChildElement(SemanticVIPAuthenticatorConstants.OTP, namespacePrefix);
+            soapBodyElem2.addTextNode(securityCode);
+            MimeHeaders headers = soapMessage.getMimeHeaders();
+            headers.addHeader(SemanticVIPAuthenticatorConstants.SOAP_ACTION, serverURI);
+            soapMessage.saveChanges();
+        } else {
+            throw new AuthenticationFailedException("Some of the mandatory properties are not defined in properties file");
+        }
         return soapMessage;
     }
 }

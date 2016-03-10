@@ -20,10 +20,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.wso2</groupId>
-        <artifactId>wso2</artifactId>
-        <version>1</version>
+        <groupId>org.wso2.carbon</groupId>
+        <artifactId>identity</artifactId>
+        <version>4.2.0</version>
     </parent>
+    <!--<parent>-->
+        <!--<groupId>org.wso2</groupId>-->
+        <!--<artifactId>wso2</artifactId>-->
+        <!--<version>1</version>-->
+    <!--</parent>-->
     <groupId>org.wso2.carbon.extension.identity.authenticator</groupId>
     <artifactId>org.wso2.carbon.extension.identity.authenticator.semanticvip</artifactId>
     <version>1.0.0</version>
@@ -175,6 +180,11 @@
             <groupId>org.wso2.orbit.org.owasp.encoder</groupId>
             <artifactId>encoder</artifactId>
             <version>${encoder.wso2.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.axis2.wso2</groupId>
+            <artifactId>axis2</artifactId>
+            <version>${axis2.wso2.version}</version>
         </dependency>
     </dependencies>
     <build>
@@ -366,5 +376,6 @@
         <org.wso2.securevault.version>1.0.0-wso2v2</org.wso2.securevault.version>
         <commons-lang.wso2.version>2.6.0.wso2v1</commons-lang.wso2.version>
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
+        <axis2.wso2.version>1.6.1.wso2v10</axis2.wso2.version>
     </properties>
 </project>
