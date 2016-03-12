@@ -19,7 +19,6 @@
 
 package org.wso2.carbon.identity.authenticator.semanticvip;
 
-import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -29,14 +28,16 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authenticator.oidc.OpenIDConnectAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -127,7 +128,6 @@ public class SemanticVIPAuthenticator extends OpenIDConnectAuthenticator impleme
                 log.error("The Credential ID can not be null.");
                 throw new AuthenticationFailedException("The Credential ID can not be null.");
             } else {
-                System.setProperty(SemanticVIPAuthenticatorConstants.AXIS2, SemanticVIPAuthenticatorConstants.AXIS2_FILE);
                 String p12file = authenticatorProperties.get(SemanticVIPAuthenticatorConstants.VIP_P12FILE);
                 String p12password = authenticatorProperties.get(SemanticVIPAuthenticatorConstants.VIP_P12PASSWORD);
                 String secretCode = request.getParameter(SemanticVIPAuthenticatorConstants.SECURITY_CODE);

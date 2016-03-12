@@ -18,11 +18,10 @@
 
 package org.wso2.carbon.identity.authenticator.semanticvip;
 
-import org.apache.axis2.saaj.MessageFactoryImpl;
-import org.apache.axis2.saaj.SOAPConnectionImpl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.apache.axis2.saaj.MessageFactoryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -30,17 +29,13 @@ import javax.net.ssl.SSLContext;
 
 import javax.xml.soap.SOAPConnection;
 import javax.xml.soap.Name;
-import javax.xml.soap.MessageFactory;
 import javax.xml.soap.MimeHeaders;
 import javax.xml.soap.SOAPBody;
 import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPPart;
-import javax.xml.soap.SOAPConnectionFactory;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
-
-import org.apache.axis2.saaj.SOAPConnectionFactoryImpl;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,7 +49,6 @@ import java.security.cert.CertificateException;
 import java.security.SecureRandom;
 import java.security.KeyStoreException;
 import java.security.UnrecoverableKeyException;
-
 
 import java.util.Properties;
 
@@ -100,13 +94,14 @@ public class VIPManager {
                 throw new AuthenticationFailedException("Unable to load the properties file: " + e.getMessage(), e);
             }
             SOAPMessage soapMessage;
-            soapConnection = new SOAPConnectionFactoryImpl().createConnection();
+            soapConnection = new SOAPConnectionImpl();
             if (vipProperties.containsKey(SemanticVIPAuthenticatorConstants.VIP_URL)) {
                 String url = vipProperties.getProperty(SemanticVIPAuthenticatorConstants.VIP_URL);
                 soapMessage = validationSOAPMessage(vipProperties, tokenId, securityCode);
                 if (soapMessage != null) {
                     String reasonCode;
                     SOAPMessage soapResponse = soapConnection.call(soapMessage, url);
+//                    SOAPMessage soapResponse = new SOAPConnectionFactoryImpl().createConnection().call(soapMessage, url);
                     if (soapResponse.getSOAPBody().getElementsByTagName("ValidateResponse").getLength() != 0) {
                         reasonCode =
                                 soapResponse.getSOAPBody().getElementsByTagName("ReasonCode").item(0).getTextContent().toString();
