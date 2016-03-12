@@ -101,7 +101,6 @@ public class VIPManager {
                 if (soapMessage != null) {
                     String reasonCode;
                     SOAPMessage soapResponse = soapConnection.call(soapMessage, url);
-//                    SOAPMessage soapResponse = new SOAPConnectionFactoryImpl().createConnection().call(soapMessage, url);
                     if (soapResponse.getSOAPBody().getElementsByTagName("ValidateResponse").getLength() != 0) {
                         reasonCode =
                                 soapResponse.getSOAPBody().getElementsByTagName("ReasonCode").item(0).getTextContent().toString();

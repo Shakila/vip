@@ -132,7 +132,8 @@ public class SemanticVIPAuthenticator extends OpenIDConnectAuthenticator impleme
                 String p12password = authenticatorProperties.get(SemanticVIPAuthenticatorConstants.VIP_P12PASSWORD);
                 String secretCode = request.getParameter(SemanticVIPAuthenticatorConstants.SECURITY_CODE);
                 VIPManager.invokeSOAP(tokenId, secretCode, p12file, p12password);
-                context.setSubject(AuthenticatedUser.createFederateAuthenticatedUserFromSubjectIdentifier(tokenId));
+                String username = context.getProperty(SemanticVIPAuthenticatorConstants.IS_USERNAME).toString();
+                context.setSubject(AuthenticatedUser.createFederateAuthenticatedUserFromSubjectIdentifier(username));
             }
         } catch (AuthenticationFailedException e) {
             log.error(e.getMessage(), e);
@@ -154,6 +155,7 @@ public class SemanticVIPAuthenticator extends OpenIDConnectAuthenticator impleme
         }
         if (StringUtils.isNotEmpty(username)) {
             UserRealm userRealm = null;
+            context.setProperty(SemanticVIPAuthenticatorConstants.IS_USERNAME, username);
             String tenantDomain = MultitenantUtils.getTenantDomain(username);
             int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
             RealmService realmService = IdentityTenantUtil.getRealmService();
@@ -163,6 +165,7 @@ public class SemanticVIPAuthenticator extends OpenIDConnectAuthenticator impleme
                 throw new AuthenticationFailedException("Cannot find the user realm", e);
             }
             username = MultitenantUtils.getTenantAwareUsername(String.valueOf(username));
+
             if (userRealm != null) {
                 try {
                     tokenId =

@@ -34,8 +34,7 @@ public class SemanticVIPAuthenticatorConstants {
     public static final String VIP_P12FILE = "P12file";
     public static final String VIP_P12PASSWORD = "P12KeystorePassword";
 
-    public static final String AXIS2 = "axis2.xml";
-    public static final String AXIS2_FILE = "repository/conf/axis2/axis2_inwebo.xml";
+    public static final String IS_USERNAME = "Username";
 
     public static final String SECURITY_CODE = "SecurityCode";
     public static final String VIP_CREDENTIAL_ID_CLAIM = "http://wso2.org/claims/vipcredentialid";
