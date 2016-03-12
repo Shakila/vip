@@ -26,10 +26,16 @@ public class SemanticVIPAuthenticatorConstants {
     public static final String LOGIN_PAGE = "authenticationendpoint/login.do";
     public static final String VIP_PAGE = "semanticvipauthenticationendpoint/semanticvip.jsp";
     public static final String RETRY_PARAMS = "&authFailure=true&authFailureMsg=authentication.fail.message";
+    public static final String AUTHENTICATORS = "&authenticators=";
+    public static final String LOCAL = "LOCAL";
+
     public static final String PROPERTIES_FILE = "semanticvip.properties";
     public static final String VIP_URL = "vipURL";
     public static final String VIP_P12FILE = "P12file";
     public static final String VIP_P12PASSWORD = "P12KeystorePassword";
+
+    public static final String AXIS2 = "axis2.xml";
+    public static final String AXIS2_FILE = "repository/conf/axis2/axis2_inwebo.xml";
 
     public static final String SECURITY_CODE = "SecurityCode";
     public static final String VIP_CREDENTIAL_ID_CLAIM = "http://wso2.org/claims/vipcredentialid";
@@ -45,7 +51,4 @@ public class SemanticVIPAuthenticatorConstants {
     public static final String TOKEN_ID = "TokenId";
     public static final String OTP = "OTP";
     public static final String SUCCESS_CODE = "0000";
-
-    public static final String AUTHENTICATORS = "&authenticators=";
-    public static final String LOCAL = "LOCAL";
 }

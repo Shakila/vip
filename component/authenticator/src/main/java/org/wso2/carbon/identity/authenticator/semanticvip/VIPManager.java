@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.authenticator.semanticvip;
 
+import org.apache.axis2.saaj.MessageFactoryImpl;
+import org.apache.axis2.saaj.SOAPConnectionImpl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -37,6 +39,8 @@ import javax.xml.soap.SOAPPart;
 import javax.xml.soap.SOAPConnectionFactory;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
+
+import org.apache.axis2.saaj.SOAPConnectionFactoryImpl;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -59,10 +63,6 @@ public class VIPManager {
 
     /**
      * Set the client certificate to Default SSL Context
-     *
-     * @param certificateFile File containing certificate (PKCS12 format)
-     * @param certPassword    Password of certificate
-     * @throws Exception
      */
     public static void setHttpsClientCert(String certificateFile, String certPassword) throws KeyStoreException,
             NoSuchAlgorithmException, IOException, CertificateException, UnrecoverableKeyException,
@@ -84,8 +84,8 @@ public class VIPManager {
     /**
      * Method to create SOAP connection
      */
-    public static void invokeSOAP(String tokenId, String securityCode, String p12file, String p12password) throws AuthenticationFailedException {
-        SOAPConnectionFactory soapConnectionFactory = null;
+    public static void invokeSOAP(String tokenId, String securityCode, String p12file, String p12password)
+            throws AuthenticationFailedException {
         SOAPConnection soapConnection = null;
         try {
             setHttpsClientCert(p12file, p12password);
@@ -96,12 +96,11 @@ public class VIPManager {
             try {
                 vipProperties.load(resourceStream);
             } catch (IOException e) {
-                log.error("Unable to load the properties file", e);
-                throw new AuthenticationFailedException("Unable to load the properties file", e);
+                log.error("Unable to load the properties file: " + e.getMessage(), e);
+                throw new AuthenticationFailedException("Unable to load the properties file: " + e.getMessage(), e);
             }
             SOAPMessage soapMessage;
-            soapConnectionFactory = SOAPConnectionFactory.newInstance();
-            soapConnection = soapConnectionFactory.createConnection();
+            soapConnection = new SOAPConnectionFactoryImpl().createConnection();
             if (vipProperties.containsKey(SemanticVIPAuthenticatorConstants.VIP_URL)) {
                 String url = vipProperties.getProperty(SemanticVIPAuthenticatorConstants.VIP_URL);
                 soapMessage = validationSOAPMessage(vipProperties, tokenId, securityCode);
@@ -126,20 +125,21 @@ public class VIPManager {
                 throw new AuthenticationFailedException("VIP endpoint URL is not defined in properties file");
             }
         } catch (SOAPException e) {
-            throw new AuthenticationFailedException("Error occurred while sending SOAP Request to Server", e);
+            throw new AuthenticationFailedException("Error occurred while sending SOAP Request to Server: "
+                    + e.getMessage(), e);
         } catch (AuthenticationFailedException e) {
             throw new AuthenticationFailedException(e.getMessage());
         } catch (KeyStoreException | NoSuchAlgorithmException | IOException | CertificateException
                 | UnrecoverableKeyException | KeyManagementException e) {
-            log.error("Error while adding certificate", e);
-            throw new AuthenticationFailedException("Error while adding certificate", e);
+            log.error("Error while adding certificate: " + e.getMessage(), e);
+            throw new AuthenticationFailedException("Error while adding certificate: " + e.getMessage(), e);
         } finally {
             try {
                 if (soapConnection != null) {
                     soapConnection.close();
                 }
             } catch (SOAPException e) {
-                log.error("Error while closing the SOAP connection", e);
+                log.error("Error while closing the SOAP connection: " + e.getMessage(), e);
             }
         }
     }
@@ -149,8 +149,7 @@ public class VIPManager {
         SOAPMessage soapMessage = null;
         if (vipProperties.containsKey(SemanticVIPAuthenticatorConstants.SOAP_VIP_NS_URI)
                 && vipProperties.containsKey(SemanticVIPAuthenticatorConstants.VERSION)) {
-            MessageFactory messageFactory = MessageFactory.newInstance();
-            soapMessage = messageFactory.createMessage();
+            soapMessage = new MessageFactoryImpl().createMessage();
             SOAPPart soapPart = soapMessage.getSOAPPart();
             String serverURI = vipProperties.getProperty(SemanticVIPAuthenticatorConstants.SOAP_VIP_NS_URI);
             SOAPEnvelope envelope = soapPart.getEnvelope();

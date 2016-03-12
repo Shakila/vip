@@ -41,7 +41,7 @@
                 errorMessage = request.getParameter(Constants.AUTH_FAILURE_MSG);
 
                  if (errorMessage.equalsIgnoreCase("authentication.fail.message")) {
-                    errorMessage = "Authentication Failed! Please Retry";
+                    errorMessage = "Authentication Failed! Please etry with new security code";
                 }
             }
         }
@@ -150,6 +150,10 @@
             var code = document.getElementById("SecurityCode").value;
             if (code == "") {
                 document.getElementById('alertDiv').innerHTML = '<div id="error-msg" class="alert alert-danger">Please enter the code!</div>';
+            } else if (code.trim().length != 6) {
+                document.getElementById('alertDiv').innerHTML = '<div id="error-msg" class="alert alert-danger">Length of the code should be 6!</div>';
+            } else if (isNaN(code.trim())) {
+                document.getElementById('alertDiv').innerHTML = '<div id="error-msg" class="alert alert-danger">Code should have numbers only!</div>';
             } else {
 	            $('#codeForm').submit();
 	        }
