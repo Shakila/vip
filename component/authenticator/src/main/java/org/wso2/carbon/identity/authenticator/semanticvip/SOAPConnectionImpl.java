@@ -19,8 +19,6 @@
 
 package org.wso2.carbon.identity.authenticator.semanticvip;
 
-import org.apache.axiom.attachments.Attachments;
-import org.apache.axiom.attachments.ConfigurableDataHandler;
 import org.apache.axiom.om.OMAttribute;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMNode;
@@ -69,10 +67,11 @@ public class SOAPConnectionImpl extends SOAPConnection {
 
     SOAPConnectionImpl() throws SOAPException {
         try {
-            this.configurationContext = ConfigurationContextFactory.createConfigurationContextFromFileSystem((String) null, (String) null);
+            this.configurationContext =
+                    ConfigurationContextFactory.createConfigurationContextFromFileSystem((String) null, (String) null);
             this.disableMustUnderstandProcessing(this.configurationContext.getAxisConfiguration());
-        } catch (AxisFault var2) {
-            throw new SOAPException(var2);
+        } catch (AxisFault e) {
+            throw new SOAPException(e);
         }
     }
 
@@ -83,8 +82,8 @@ public class SOAPConnectionImpl extends SOAPConnection {
             URL url;
             try {
                 url = endpoint instanceof URL ? (URL) endpoint : new URL(endpoint.toString());
-            } catch (MalformedURLException var29) {
-                throw new SOAPException(var29.getMessage());
+            } catch (MalformedURLException e) {
+                throw new SOAPException(e.getMessage());
             }
             Options options = new Options();
             options.setTo(new EndpointReference(url.toString()));
@@ -93,8 +92,8 @@ public class SOAPConnectionImpl extends SOAPConnection {
             try {
                 serviceClient = new ServiceClient(this.configurationContext, (AxisService) null);
                 opClient = serviceClient.createClient(ServiceClient.ANON_OUT_IN_OP);
-            } catch (AxisFault var28) {
-                throw new SOAPException(var28);
+            } catch (AxisFault e) {
+                throw new SOAPException(e);
             }
             options.setProperty("CHARACTER_SET_ENCODING", request.getProperty("javax.xml.soap.character-set-encoding"));
             opClient.setOptions(options);
@@ -102,86 +101,45 @@ public class SOAPConnectionImpl extends SOAPConnection {
             SOAPEnvelope envelope;
             Iterator responseMsgCtx;
             String attachments;
-            if (isMTOM(request)) {
-                envelope = SAAJUtil.toOMSOAPEnvelope(request);
-                options.setProperty("enableMTOM", "true");
-            } else {
-                envelope = SAAJUtil.toOMSOAPEnvelope(request.getSOAPPart().getDocumentElement());
-                if (request.countAttachments() != 0) {
-                    Attachments httpHeaders = requestMsgCtx.getAttachmentMap();
-                    Object arr$;
-                    for (responseMsgCtx = request.getAttachments(); responseMsgCtx.hasNext(); httpHeaders.addDataHandler(attachments, (DataHandler) arr$)) {
-                        AttachmentPart response = (AttachmentPart) responseMsgCtx.next();
-                        attachments = response.getContentId();
-                        if (attachments == null) {
-                            attachments = IDGenerator.generateID();
-                        }
-                        arr$ = response.getDataHandler();
-                        if (!SAAJUtil.compareContentTypes(response.getContentType(), ((DataHandler) arr$).getContentType())) {
-                            ConfigurableDataHandler ex = new ConfigurableDataHandler(((DataHandler) arr$).getDataSource());
-                            ex.setContentType(response.getContentType());
-                            arr$ = ex;
-                        }
-                    }
-                    options.setProperty("enableSwA", "true");
-                }
-            }
-            HashMap var31 = null;
+            envelope = SAAJUtil.toOMSOAPEnvelope(request.getSOAPPart().getDocumentElement());
+            HashMap hashMap = null;
             responseMsgCtx = request.getMimeHeaders().getAllHeaders();
             while (responseMsgCtx.hasNext()) {
-                MimeHeader var32 = (MimeHeader) responseMsgCtx.next();
-                attachments = var32.getName().toLowerCase();
+                MimeHeader mimeHeader = (MimeHeader) responseMsgCtx.next();
+                attachments = mimeHeader.getName().toLowerCase();
                 if (attachments.equals("soapaction")) {
-                    requestMsgCtx.setSoapAction(var32.getValue());
+                    requestMsgCtx.setSoapAction(mimeHeader.getValue());
                 } else if (!attachments.equals("content-type")) {
-                    if (var31 == null) {
-                        var31 = new HashMap();
+                    if (hashMap == null) {
+                        hashMap = new HashMap();
                     }
-                    var31.put(var32.getName(), var32.getValue());
+                    hashMap.put(mimeHeader.getName(), mimeHeader.getValue());
                 }
             }
-            if (var31 != null) {
-                requestMsgCtx.setProperty("HTTP_HEADERS", var31);
+            if (hashMap != null) {
+                requestMsgCtx.setProperty("HTTP_HEADERS", hashMap);
             }
             try {
-                MessageContext var33;
+                MessageContext messageContext;
                 try {
                     requestMsgCtx.setEnvelope(envelope);
                     opClient.addMessageContext(requestMsgCtx);
                     opClient.execute(true);
-                    var33 = opClient.getMessageContext("In");
-                } catch (AxisFault var27) {
-                    throw new SOAPException(var27.getMessage(), var27);
+                    messageContext = opClient.getMessageContext("In");
+                } catch (AxisFault e) {
+                    throw new SOAPException(e.getMessage(), e);
                 }
-                SOAPMessage var34 = this.getSOAPMessage(var33.getEnvelope());
-                Attachments var36 = var33.getAttachmentMap();
-                String[] var35 = var36.getAllContentIDs();
-                int var37 = var35.length;
-                for (int i$ = 0; i$ < var37; ++i$) {
-                    String contentId = var35[i$];
-                    if (!contentId.equals(var36.getSOAPPartContentID())) {
-                        AttachmentPart ap = var34.createAttachmentPart(var36.getDataHandler(contentId));
-                        ap.setContentId(contentId);
-                        var34.addAttachmentPart(ap);
-                    }
-                }
-                SOAPMessage var38 = var34;
-                return var38;
+                SOAPMessage soapMessage = this.getSOAPMessage(messageContext.getEnvelope());
+                return soapMessage;
             } finally {
                 try {
                     serviceClient.cleanupTransport();
                     serviceClient.cleanup();
-                } catch (AxisFault var26) {
-                    throw new SOAPException(var26);
+                } catch (AxisFault e) {
+                    throw new SOAPException(e);
                 }
             }
         }
-    }
-
-    private static boolean isMTOM(SOAPMessage soapMessage) {
-        SOAPPart soapPart = soapMessage.getSOAPPart();
-        String[] contentTypes = soapPart.getMimeHeader("Content-Type");
-        return contentTypes != null && contentTypes.length > 0 ? SAAJUtil.normalizeContentType(contentTypes[0]).equals("application/xop+xml") : false;
     }
 
     private void disableMustUnderstandProcessing(AxisConfiguration config) {
@@ -213,8 +171,8 @@ public class SOAPConnectionImpl extends SOAPConnection {
         } else {
             try {
                 this.configurationContext.terminate();
-            } catch (AxisFault var2) {
-                throw new SOAPException(var2.getMessage());
+            } catch (AxisFault e) {
+                throw new SOAPException(e.getMessage());
             }
             this.closed = true;
         }
@@ -232,12 +190,15 @@ public class SOAPConnectionImpl extends SOAPConnection {
             while (hbIter.hasNext()) {
                 SOAPHeaderBlock hb = (SOAPHeaderBlock) hbIter.next();
                 QName hbQName = hb.getQName();
-                SOAPHeaderElement headerEle = header.addHeaderElement(env.createName(hbQName.getLocalPart(), hbQName.getPrefix(), hbQName.getNamespaceURI()));
+                SOAPHeaderElement headerEle =
+                        header.addHeaderElement(env.createName(hbQName.getLocalPart(), hbQName.getPrefix(),
+                                hbQName.getNamespaceURI()));
                 Iterator role = hb.getAllAttributes();
                 while (role.hasNext()) {
                     OMAttribute attr = (OMAttribute) role.next();
                     QName attrQName = attr.getQName();
-                    headerEle.addAttribute(env.createName(attrQName.getLocalPart(), attrQName.getPrefix(), attrQName.getNamespaceURI()), attr.getAttributeValue());
+                    headerEle.addAttribute(env.createName(attrQName.getLocalPart(), attrQName.getPrefix(),
+                            attrQName.getNamespaceURI()), attr.getAttributeValue());
                 }
                 String role1 = hb.getRole();
                 if (role1 != null) {
@@ -257,7 +218,8 @@ public class SOAPConnectionImpl extends SOAPConnection {
                 OMElement omEle = (OMElement) omNode;
                 OMNode omChildNode;
                 SOAPElement saajChildEle;
-                for (Iterator childIter = omEle.getChildren(); childIter.hasNext(); this.toSAAJElement(saajChildEle, omChildNode, saajSOAPMsg)) {
+                for (Iterator childIter = omEle.getChildren(); childIter.hasNext(); this.toSAAJElement(saajChildEle,
+                        omChildNode, saajSOAPMsg)) {
                     omChildNode = (OMNode) childIter.next();
                     saajChildEle = null;
                     if (omChildNode instanceof OMText) {
@@ -269,20 +231,25 @@ public class SOAPConnectionImpl extends SOAPConnection {
                             attribIter1.setContentId("<" + attr1 + ">");
                             attribIter1.setContentType(omChildQName1.getContentType());
                             saajSOAPMsg.addAttachmentPart(attribIter1);
-                            SOAPElement attrQName1 = saajEle.addChildElement("Include", "xop", "http://www.w3.org/2004/08/xop/include");
-                            attrQName1.addAttribute(saajSOAPMsg.getSOAPPart().getEnvelope().createName("href"), "cid:" + attr1);
+                            SOAPElement attrQName1 = saajEle.addChildElement("Include", "xop",
+                                    "http://www.w3.org/2004/08/xop/include");
+                            attrQName1.addAttribute(saajSOAPMsg.getSOAPPart().getEnvelope().createName("href"), "cid:" +
+                                    attr1);
                         } else {
                             saajChildEle = saajEle.addTextNode(omChildEle1.getText());
                         }
                     } else if (omChildNode instanceof OMElement) {
                         OMElement omChildEle = (OMElement) omChildNode;
                         QName omChildQName = omChildEle.getQName();
-                        saajChildEle = saajEle.addChildElement(omChildQName.getLocalPart(), omChildQName.getPrefix(), omChildQName.getNamespaceURI());
+                        saajChildEle = saajEle.addChildElement(omChildQName.getLocalPart(), omChildQName.getPrefix(),
+                                omChildQName.getNamespaceURI());
                         Iterator attribIter = omChildEle.getAllAttributes();
                         while (attribIter.hasNext()) {
                             OMAttribute attr = (OMAttribute) attribIter.next();
                             QName attrQName = attr.getQName();
-                            saajChildEle.addAttribute(saajSOAPMsg.getSOAPPart().getEnvelope().createName(attrQName.getLocalPart(), attrQName.getPrefix(), attrQName.getNamespaceURI()), attr.getAttributeValue());
+                            saajChildEle.addAttribute(saajSOAPMsg.getSOAPPart().getEnvelope()
+                                    .createName(attrQName.getLocalPart(), attrQName.getPrefix(),
+                                            attrQName.getNamespaceURI()), attr.getAttributeValue());
                         }
                     }
                 }

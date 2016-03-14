@@ -66,8 +66,9 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>org.wso2.carbon.identity.authenticator.internal</Private-Package>
-                        <Import-Package>org.apache.axis2.*;version="1.6.1.wso2v10",
-                            org.apache.axis2.saaj.*,
+                        <Import-Package>org.apache.axis2.*,
+                            <!--;version="1.6.1.wso2v10",-->
+                            <!--org.apache.axis2.saaj.*,-->
                             javax.xml.soap,
                             org.apache.axiom.*,
                             org.wso2.carbon.ui.*,

@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.authenticator.semanticvip;
 
+import org.apache.axis2.saaj.SOAPConnectionFactoryImpl;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -104,10 +106,12 @@ public class VIPManager {
                     if (soapResponse.getSOAPBody().getElementsByTagName("ValidateResponse").getLength() != 0) {
                         reasonCode =
                                 soapResponse.getSOAPBody().getElementsByTagName("ReasonCode").item(0).getTextContent().toString();
-                        if (!SemanticVIPAuthenticatorConstants.SUCCESS_CODE.equals(reasonCode)) {
+                        if (StringUtils.isNotEmpty(reasonCode)
+                                && !SemanticVIPAuthenticatorConstants.SUCCESS_CODE.equals(reasonCode)) {
                             String error = soapResponse.getSOAPBody().getElementsByTagName("StatusMessage").item(0)
                                     .getTextContent().toString();
-                            throw new AuthenticationFailedException("Error occurred while validating the credentials:" + error);
+                            throw new AuthenticationFailedException("Error occurred while validating the credentials:"
+                                    + error);
                         }
                     } else {
                         throw new AuthenticationFailedException("Unable to find the provisioning ID");

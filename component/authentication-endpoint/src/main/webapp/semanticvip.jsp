@@ -85,14 +85,13 @@
 
                 <!-- content -->
                 <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-4 col-centered wr-content wr-login col-centered">
-                    <div>
+                    <div><img src="images/vip.png" style="float:left;" width="85" height="60"/>
                         <h2 class="wr-title blue-bg padding-double white boarder-bottom-blue margin-none">
-                            <img src="images/vip.png" style="float:left;" width="50" height="50"/> Authentication &nbsp;&nbsp;</h2>
+                             &nbsp;&nbsp;Authentication </h2>
                     </div>
                     <div class="boarder-all ">
                         <div class="clearfix"></div>
                         <div class="padding-double login-form">
-                            <div id="errorDiv"></div>
                             <%
                                 if ("true".equals(authenticationFailed)) {
                             %>
@@ -150,10 +149,10 @@
             var code = document.getElementById("SecurityCode").value;
             if (code == "") {
                 document.getElementById('alertDiv').innerHTML = '<div id="error-msg" class="alert alert-danger">Please enter the code!</div>';
-            } else if (code.trim().length != 6) {
-                document.getElementById('alertDiv').innerHTML = '<div id="error-msg" class="alert alert-danger">Length of the code should be 6!</div>';
             } else if (isNaN(code.trim())) {
                 document.getElementById('alertDiv').innerHTML = '<div id="error-msg" class="alert alert-danger">Code should have numbers only!</div>';
+            } else if (code.trim().length != 6) {
+                document.getElementById('alertDiv').innerHTML = '<div id="error-msg" class="alert alert-danger">Length of the code should be 6!</div>';
             } else {
 	            $('#codeForm').submit();
 	        }
