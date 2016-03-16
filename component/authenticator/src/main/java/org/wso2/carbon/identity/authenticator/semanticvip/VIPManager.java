@@ -18,12 +18,11 @@
 
 package org.wso2.carbon.identity.authenticator.semanticvip;
 
-import org.apache.axis2.saaj.SOAPConnectionFactoryImpl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.apache.axis2.saaj.MessageFactoryImpl;
+
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -62,9 +61,9 @@ public class VIPManager {
      */
     public static void setHttpsClientCert(String certificateFile, String certPassword) throws KeyStoreException,
             NoSuchAlgorithmException, IOException, CertificateException, UnrecoverableKeyException,
-            KeyManagementException {
+            KeyManagementException, AuthenticationFailedException {
         if (certificateFile == null || !new File(certificateFile).exists()) {
-            return;
+            throw new AuthenticationFailedException("The certificate file is not found");
         }
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
@@ -92,7 +91,6 @@ public class VIPManager {
             try {
                 vipProperties.load(resourceStream);
             } catch (IOException e) {
-                log.error("Unable to load the properties file: " + e.getMessage(), e);
                 throw new AuthenticationFailedException("Unable to load the properties file: " + e.getMessage(), e);
             }
             SOAPMessage soapMessage;
@@ -129,7 +127,6 @@ public class VIPManager {
             throw new AuthenticationFailedException(e.getMessage());
         } catch (KeyStoreException | NoSuchAlgorithmException | IOException | CertificateException
                 | UnrecoverableKeyException | KeyManagementException e) {
-            log.error("Error while adding certificate: " + e.getMessage(), e);
             throw new AuthenticationFailedException("Error while adding certificate: " + e.getMessage(), e);
         } finally {
             try {
