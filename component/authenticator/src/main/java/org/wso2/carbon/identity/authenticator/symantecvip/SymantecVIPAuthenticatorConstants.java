@@ -17,16 +17,16 @@
  *
  */
 
-package org.wso2.carbon.identity.authenticator.semanticvip;
+package org.wso2.carbon.identity.authenticator.symantecvip;
 
-public class SemanticVIPAuthenticatorConstants {
-    public static final String AUTHENTICATOR_NAME = "SemanticVIP";
-    public static final String AUTHENTICATOR_FRIENDLY_NAME = "SemanticVIPAuthenticator";
+public class SymantecVIPAuthenticatorConstants {
+    public static final String AUTHENTICATOR_NAME = "SymantecVIP";
+    public static final String AUTHENTICATOR_FRIENDLY_NAME = "SymantecVIPAuthenticator";
 
     public static final String LOGIN_PAGE = "authenticationendpoint/login.do";
-    public static final String VIP_PAGE = "semanticvipauthenticationendpoint/semanticvip.jsp";
+    public static final String VIP_PAGE = "symantecvipauthenticationendpoint/symantecvip.jsp";
     public static final String RETRY_PARAMS = "&authFailure=true&authFailureMsg=authentication.fail.message";
-    public static final String PROPERTIES_FILE = "semanticvip.properties";
+    public static final String PROPERTIES_FILE = "symantecvip.properties";
     public static final String VIP_URL = "vipURL";
     public static final String VIP_P12FILE = "P12file";
     public static final String VIP_P12PASSWORD = "P12KeystorePassword";

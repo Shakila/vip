@@ -17,7 +17,7 @@
  *
  */
 
-package org.wso2.carbon.identity.authenticator.semanticvip;
+package org.wso2.carbon.identity.authenticator.symantecvip;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
@@ -52,20 +52,20 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Authenticator of SemanticVIP
+ * Authenticator of SymantecVIP
  */
-public class SemanticVIPAuthenticator extends OpenIDConnectAuthenticator implements FederatedApplicationAuthenticator {
+public class SymantecVIPAuthenticator extends OpenIDConnectAuthenticator implements FederatedApplicationAuthenticator {
 
-    private static Log log = LogFactory.getLog(SemanticVIPAuthenticator.class);
+    private static Log log = LogFactory.getLog(SymantecVIPAuthenticator.class);
 
     /**
      * Check whether the authentication or logout request can be handled by the authenticator
      */
     public boolean canHandle(HttpServletRequest request) {
         if (log.isDebugEnabled()) {
-            log.debug("Inside SemanticVIPAuthenticator canHandle method");
+            log.debug("Inside SymantecVIPAuthenticator canHandle method");
         }
-        return (StringUtils.isNotEmpty(request.getParameter(SemanticVIPAuthenticatorConstants.SECURITY_CODE)));
+        return (StringUtils.isNotEmpty(request.getParameter(SymantecVIPAuthenticatorConstants.SECURITY_CODE)));
     }
 
     /**
@@ -77,11 +77,11 @@ public class SemanticVIPAuthenticator extends OpenIDConnectAuthenticator impleme
             throws AuthenticationFailedException {
         try {
             Map<String, String> authenticatorProperties = context.getAuthenticatorProperties();
-            String p12file = authenticatorProperties.get(SemanticVIPAuthenticatorConstants.VIP_P12FILE);
-            String p12password = authenticatorProperties.get(SemanticVIPAuthenticatorConstants.VIP_P12PASSWORD);
+            String p12file = authenticatorProperties.get(SymantecVIPAuthenticatorConstants.VIP_P12FILE);
+            String p12password = authenticatorProperties.get(SymantecVIPAuthenticatorConstants.VIP_P12PASSWORD);
             if (StringUtils.isNotEmpty(p12file) && StringUtils.isNotEmpty(p12password)) {
                 Properties vipProperties = new Properties();
-                String resourceName = SemanticVIPAuthenticatorConstants.PROPERTIES_FILE;
+                String resourceName = SymantecVIPAuthenticatorConstants.PROPERTIES_FILE;
                 ClassLoader loader = Thread.currentThread().getContextClassLoader();
                 InputStream resourceStream = loader.getResourceAsStream(resourceName);
                 try {
@@ -92,17 +92,17 @@ public class SemanticVIPAuthenticator extends OpenIDConnectAuthenticator impleme
                 }
                 String retryParam = "";
                 if (context.isRetrying()) {
-                    retryParam = SemanticVIPAuthenticatorConstants.RETRY_PARAMS;
+                    retryParam = SymantecVIPAuthenticatorConstants.RETRY_PARAMS;
                 }
                 String vipPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL()
-                        .replace(SemanticVIPAuthenticatorConstants.LOGIN_PAGE, SemanticVIPAuthenticatorConstants.VIP_PAGE);
+                        .replace(SymantecVIPAuthenticatorConstants.LOGIN_PAGE, SymantecVIPAuthenticatorConstants.VIP_PAGE);
                 String queryParams = FrameworkUtils
                         .getQueryStringWithFrameworkContextId(context.getQueryParams(),
                                 context.getCallerSessionKey(),
                                 context.getContextIdentifier());
                 response.sendRedirect(response.encodeRedirectURL(vipPage + ("?" + queryParams))
-                        + SemanticVIPAuthenticatorConstants.AUTHENTICATORS + getName() + ":"
-                        + SemanticVIPAuthenticatorConstants.LOCAL
+                        + SymantecVIPAuthenticatorConstants.AUTHENTICATORS + getName() + ":"
+                        + SymantecVIPAuthenticatorConstants.LOCAL
                         + retryParam);
             } else {
                 log.error("Certificate path and password cannot be null");
@@ -114,13 +114,13 @@ public class SemanticVIPAuthenticator extends OpenIDConnectAuthenticator impleme
     }
 
     /**
-     * Process the response of the Semantic VIP
+     * Process the response of the Symantec VIP
      */
     @Override
     protected void processAuthenticationResponse(HttpServletRequest request, HttpServletResponse response,
                                                  AuthenticationContext context) throws AuthenticationFailedException {
         try {
-            if (StringUtils.isEmpty(request.getParameter(SemanticVIPAuthenticatorConstants.SECURITY_CODE))) {
+            if (StringUtils.isEmpty(request.getParameter(SymantecVIPAuthenticatorConstants.SECURITY_CODE))) {
                 log.error("Security Code cannot not be null");
                 throw new InvalidCredentialsException("Security Code cannot not be null");
             }
@@ -149,15 +149,15 @@ public class SemanticVIPAuthenticator extends OpenIDConnectAuthenticator impleme
                 username = MultitenantUtils.getTenantAwareUsername(String.valueOf(username));
                 if (userRealm != null) {
                     tokenId = userRealm.getUserStoreManager()
-                            .getUserClaimValue(username, SemanticVIPAuthenticatorConstants.VIP_CREDENTIAL_ID_CLAIM, null).toString();
+                            .getUserClaimValue(username, SymantecVIPAuthenticatorConstants.VIP_CREDENTIAL_ID_CLAIM, null).toString();
                     if (StringUtils.isEmpty(tokenId)) {
                         log.error("The Credential ID can not be null.");
                         throw new AuthenticationFailedException("The Credential ID can not be null.");
                     } else {
-                        String p12file = authenticatorProperties.get(SemanticVIPAuthenticatorConstants.VIP_P12FILE);
-                        String p12password = authenticatorProperties.get(SemanticVIPAuthenticatorConstants.VIP_P12PASSWORD);
+                        String p12file = authenticatorProperties.get(SymantecVIPAuthenticatorConstants.VIP_P12FILE);
+                        String p12password = authenticatorProperties.get(SymantecVIPAuthenticatorConstants.VIP_P12PASSWORD);
                         VIPManager.setHttpsClientCert(p12file, p12password);
-                        String secretCode = request.getParameter(SemanticVIPAuthenticatorConstants.SECURITY_CODE);
+                        String secretCode = request.getParameter(SymantecVIPAuthenticatorConstants.SECURITY_CODE);
                         VIPManager.invokeSOAP(tokenId, secretCode);
                     }
                 }
@@ -180,7 +180,7 @@ public class SemanticVIPAuthenticator extends OpenIDConnectAuthenticator impleme
      */
     @Override
     public String getFriendlyName() {
-        return SemanticVIPAuthenticatorConstants.AUTHENTICATOR_FRIENDLY_NAME;
+        return SymantecVIPAuthenticatorConstants.AUTHENTICATOR_FRIENDLY_NAME;
     }
 
     /**
@@ -188,7 +188,7 @@ public class SemanticVIPAuthenticator extends OpenIDConnectAuthenticator impleme
      */
     @Override
     public String getName() {
-        return SemanticVIPAuthenticatorConstants.AUTHENTICATOR_NAME;
+        return SymantecVIPAuthenticatorConstants.AUTHENTICATOR_NAME;
     }
 
     /**
@@ -199,7 +199,7 @@ public class SemanticVIPAuthenticator extends OpenIDConnectAuthenticator impleme
 
         List<Property> configProperties = new ArrayList<Property>();
         Property p12file = new Property();
-        p12file.setName(SemanticVIPAuthenticatorConstants.VIP_P12FILE);
+        p12file.setName(SymantecVIPAuthenticatorConstants.VIP_P12FILE);
         p12file.setDisplayName("P12FILE");
         p12file.setRequired(true);
         p12file.setDescription("Enter your p12_file path");
@@ -207,7 +207,7 @@ public class SemanticVIPAuthenticator extends OpenIDConnectAuthenticator impleme
         configProperties.add(p12file);
 
         Property p12password = new Property();
-        p12password.setName(SemanticVIPAuthenticatorConstants.VIP_P12PASSWORD);
+        p12password.setName(SymantecVIPAuthenticatorConstants.VIP_P12PASSWORD);
         p12password.setDisplayName("P12Password");
         p12password.setConfidential(true);
         p12password.setRequired(true);

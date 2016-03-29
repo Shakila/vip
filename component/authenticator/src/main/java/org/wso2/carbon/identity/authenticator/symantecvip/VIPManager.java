@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package org.wso2.carbon.identity.authenticator.semanticvip;
+package org.wso2.carbon.identity.authenticator.symantecvip;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -88,7 +88,7 @@ public class VIPManager {
         SOAPConnection soapConnection = null;
         try {
             Properties vipProperties = new Properties();
-            String resourceName = SemanticVIPAuthenticatorConstants.PROPERTIES_FILE;
+            String resourceName = SymantecVIPAuthenticatorConstants.PROPERTIES_FILE;
             ClassLoader loader = Thread.currentThread().getContextClassLoader();
             InputStream resourceStream = loader.getResourceAsStream(resourceName);
             try {
@@ -101,7 +101,7 @@ public class VIPManager {
             SOAPMessage soapMessage = null;
             soapConnectionFactory = SOAPConnectionFactory.newInstance();
             soapConnection = soapConnectionFactory.createConnection();
-            String url = vipProperties.getProperty(SemanticVIPAuthenticatorConstants.VIP_URL);
+            String url = vipProperties.getProperty(SymantecVIPAuthenticatorConstants.VIP_URL);
             soapMessage = validationSOAPMessage(vipProperties, tokenId, securityCode);
 
             String reasonCode = null;
@@ -109,7 +109,7 @@ public class VIPManager {
             if (soapResponse.getSOAPBody().getElementsByTagName("ValidateResponse").getLength() != 0) {
                 reasonCode =
                         soapResponse.getSOAPBody().getElementsByTagName("ReasonCode").item(0).getTextContent().toString();
-                if (!SemanticVIPAuthenticatorConstants.SUCCESS_CODE.equals(reasonCode)) {
+                if (!SymantecVIPAuthenticatorConstants.SUCCESS_CODE.equals(reasonCode)) {
                     String error = soapResponse.getSOAPBody().getElementsByTagName("StatusMessage").item(0)
                             .getTextContent().toString();
                     throw new AuthenticationFailedException("Error occurred while validating the credentials:" + error);
@@ -136,25 +136,25 @@ public class VIPManager {
         MessageFactory messageFactory = MessageFactory.newInstance();
         SOAPMessage soapMessage = messageFactory.createMessage();
         SOAPPart soapPart = soapMessage.getSOAPPart();
-        String serverURI = vipProperties.getProperty(SemanticVIPAuthenticatorConstants.SOAP_VIP_NS_URI);
+        String serverURI = vipProperties.getProperty(SymantecVIPAuthenticatorConstants.SOAP_VIP_NS_URI);
         SOAPEnvelope envelope = soapPart.getEnvelope();
-        String namespacePrefix = SemanticVIPAuthenticatorConstants.SOAP_NAMESPACE_PREFIX;
-        envelope.addNamespaceDeclaration(SemanticVIPAuthenticatorConstants.SOAP_ENVELOP_NAMESPACE_PREFIX,
-                SemanticVIPAuthenticatorConstants.SOAP_ENVELOP_HEADER);
+        String namespacePrefix = SymantecVIPAuthenticatorConstants.SOAP_NAMESPACE_PREFIX;
+        envelope.addNamespaceDeclaration(SymantecVIPAuthenticatorConstants.SOAP_ENVELOP_NAMESPACE_PREFIX,
+                SymantecVIPAuthenticatorConstants.SOAP_ENVELOP_HEADER);
         envelope.addNamespaceDeclaration(namespacePrefix, serverURI);
         SOAPBody soapBody = envelope.getBody();
         SOAPElement soapBodyElem =
-                soapBody.addChildElement(SemanticVIPAuthenticatorConstants.SOAP_ACTION_VALIDATE, namespacePrefix);
-        Name attributeName = envelope.createName(SemanticVIPAuthenticatorConstants.VERSION);
-        soapBodyElem.addAttribute(attributeName, vipProperties.getProperty(SemanticVIPAuthenticatorConstants.VERSION));
+                soapBody.addChildElement(SymantecVIPAuthenticatorConstants.SOAP_ACTION_VALIDATE, namespacePrefix);
+        Name attributeName = envelope.createName(SymantecVIPAuthenticatorConstants.VERSION);
+        soapBodyElem.addAttribute(attributeName, vipProperties.getProperty(SymantecVIPAuthenticatorConstants.VERSION));
         SOAPElement soapBodyElem1 =
-                soapBodyElem.addChildElement(SemanticVIPAuthenticatorConstants.TOKEN_ID, namespacePrefix);
+                soapBodyElem.addChildElement(SymantecVIPAuthenticatorConstants.TOKEN_ID, namespacePrefix);
         soapBodyElem1.addTextNode(tokenId);
         SOAPElement soapBodyElem2 =
-                soapBodyElem.addChildElement(SemanticVIPAuthenticatorConstants.OTP, namespacePrefix);
+                soapBodyElem.addChildElement(SymantecVIPAuthenticatorConstants.OTP, namespacePrefix);
         soapBodyElem2.addTextNode(securityCode);
         MimeHeaders headers = soapMessage.getMimeHeaders();
-        headers.addHeader(SemanticVIPAuthenticatorConstants.SOAP_ACTION, serverURI);
+        headers.addHeader(SymantecVIPAuthenticatorConstants.SOAP_ACTION, serverURI);
         soapMessage.saveChanges();
         return soapMessage;
     }

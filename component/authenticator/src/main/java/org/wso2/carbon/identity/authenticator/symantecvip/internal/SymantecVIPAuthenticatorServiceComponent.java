@@ -17,40 +17,40 @@
  *
  */
 
-package org.wso2.carbon.identity.authenticator.semanticvip.internal;
+package org.wso2.carbon.identity.authenticator.symantecvip.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
-import org.wso2.carbon.identity.authenticator.semanticvip.SemanticVIPAuthenticator;
+import org.wso2.carbon.identity.authenticator.symantecvip.SymantecVIPAuthenticator;
 
 import java.util.Hashtable;
 
 /**
- * @scr.component name="identity.application.authenticator.SemanticVIP.component" immediate="true"
+ * @scr.component name="identity.application.authenticator.SymantecVIP.component" immediate="true"
  */
-public class SemanticVIPAuthenticatorServiceComponent {
+public class SymantecVIPAuthenticatorServiceComponent {
 
-    private static Log log = LogFactory.getLog(SemanticVIPAuthenticatorServiceComponent.class);
+    private static Log log = LogFactory.getLog(SymantecVIPAuthenticatorServiceComponent.class);
 
     protected void activate(ComponentContext ctxt) {
         try {
-            SemanticVIPAuthenticator authenticator = new SemanticVIPAuthenticator();
+            SymantecVIPAuthenticator authenticator = new SymantecVIPAuthenticator();
             Hashtable<String, String> props = new Hashtable<String, String>();
             ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                     authenticator, props);
             if (log.isDebugEnabled()) {
-                log.debug("SemanticVIP authenticator is activated");
+                log.debug("SymantecVIP authenticator is activated");
             }
         } catch (Throwable e) {
-            log.fatal("Error while activating the SemanticVIP authenticator ", e);
+            log.fatal("Error while activating the SymantecVIP authenticator ", e);
         }
     }
 
     protected void deactivate(ComponentContext ctxt) {
         if (log.isDebugEnabled()) {
-            log.debug("SemanticVIP authenticator is deactivated");
+            log.debug("SymantecVIP authenticator is deactivated");
         }
     }
 }

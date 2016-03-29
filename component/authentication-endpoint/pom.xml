@@ -21,10 +21,10 @@
     <version>1.0.0</version>
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.wso2.carbon.extension.identity.authenticatior</groupId>
-    <artifactId>org.wso2.carbon.extension.identity.application.authentication.endpoint.semanticvip</artifactId>
+    <artifactId>org.wso2.carbon.extension.identity.application.authentication.endpoint.symantecvip</artifactId>
     <packaging>war</packaging>
-    <name>WSO2 Carbon - Identity Application Authentication SemanticVIP Endpoint</name>
-    <description>Identity Application Authentication SemanticVIP Endpoint</description>
+    <name>WSO2 Carbon - Identity Application Authentication SymantecVIP Endpoint</name>
+    <description>Identity Application Authentication SymantecVIP Endpoint</description>
     <url>http://wso2.org</url>
     <dependencies>
         <dependency>
@@ -90,7 +90,7 @@
                             <directory>src/main/webapp</directory>
                         </resource>
                     </webResources>
-                    <warName>semanticvipauthenticationendpoint</warName>
+                    <warName>symantecvipauthenticationendpoint</warName>
                     <packagingExcludes>WEB-INF/lib/commons-logging*.jar</packagingExcludes>
                 </configuration>
             </plugin>

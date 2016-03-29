@@ -19,19 +19,19 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.wso2.carbon.extension.identity.authenticator</groupId>
-        <artifactId>org.wso2.carbon.extension.identity.authenticator.semanticvip</artifactId>
+        <artifactId>org.wso2.carbon.extension.identity.authenticator.symantecvip</artifactId>
         <version>1.0.0</version>
     </parent>
     <groupId>org.wso2.carbon.extension.identity.authenticator</groupId>
-    <artifactId>org.wso2.carbon.extension.identity.authenticator.semanticvip.feature</artifactId>
+    <artifactId>org.wso2.carbon.extension.identity.authenticator.symantecvip.feature</artifactId>
     <packaging>pom</packaging>
-    <name>WSO2 Carbon - identity Semantic VIP Feature</name>
+    <name>WSO2 Carbon - identity Symantec VIP Feature</name>
     <url>http://wso2.org</url>
-    <description>This feature contains extension feature for Semantic VIP</description>
+    <description>This feature contains extension feature for Symantec VIP</description>
     <dependencies>
         <dependency>
             <groupId>org.wso2.carbon.extension.identity.authenticator</groupId>
-            <artifactId>org.wso2.carbon.extension.identity.authenticator.semanticvip.connector</artifactId>
+            <artifactId>org.wso2.carbon.extension.identity.authenticator.symantecvip.connector</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
@@ -49,7 +49,7 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>org.wso2.carbon.extension.identity.authenticator.semanticvip.connector</id>
+                            <id>org.wso2.carbon.extension.identity.authenticator.symantecvip.connector</id>
                             <propertiesFile>feature.properties</propertiesFile>
                             <adviceFile>
                                 <properties>
@@ -59,7 +59,7 @@
                             </adviceFile>
                             <bundles>
                                 <bundleDef>
-                                    org.wso2.carbon.extension.identity.authenticator:org.wso2.carbon.extension.identity.authenticator.semanticvip.connector
+                                    org.wso2.carbon.extension.identity.authenticator:org.wso2.carbon.extension.identity.authenticator.symantecvip.connector
                                 </bundleDef>
                             </bundles>
                         </configuration>

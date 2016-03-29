@@ -25,10 +25,10 @@
         <version>1</version>
     </parent>
     <groupId>org.wso2.carbon.extension.identity.authenticator</groupId>
-    <artifactId>org.wso2.carbon.extension.identity.authenticator.semanticvip</artifactId>
+    <artifactId>org.wso2.carbon.extension.identity.authenticator.symantecvip</artifactId>
     <version>1.0.0</version>
     <packaging>pom</packaging>
-    <name>WSO2 Carbon Extension - Semantic VIP Pom</name>
+    <name>WSO2 Carbon Extension - Symantec VIP Pom</name>
     <url>http://wso2.org</url>
     <profiles>
         <profile>
