@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.authenticator.semanticvip;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -39,9 +38,19 @@ import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
 import javax.xml.soap.SOAPException;
 
-import java.io.*;
-import java.security.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.security.SecureRandom;
+import java.security.KeyStoreException;
+import java.security.UnrecoverableKeyException;
+
 import java.util.Properties;
 
 public class VIPManager {
