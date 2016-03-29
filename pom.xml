@@ -176,6 +176,11 @@
             <artifactId>encoder</artifactId>
             <version>${encoder.wso2.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.axis2.wso2</groupId>
+            <artifactId>axis2</artifactId>
+            <version>${axis2.wso2.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <extensions>
@@ -366,5 +371,6 @@
         <org.wso2.securevault.version>1.0.0-wso2v2</org.wso2.securevault.version>
         <commons-lang.wso2.version>2.6.0.wso2v1</commons-lang.wso2.version>
         <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
+        <axis2.wso2.version>1.6.1.wso2v16</axis2.wso2.version>
     </properties>
 </project>
