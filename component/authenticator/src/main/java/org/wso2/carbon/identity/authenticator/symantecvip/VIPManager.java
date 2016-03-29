@@ -119,14 +119,15 @@ public class VIPManager {
             }
 
         } catch (SOAPException e) {
-            throw new AuthenticationFailedException("Error occurred while sending SOAP Request to Server", e);
+            throw new AuthenticationFailedException("Error occurred while sending SOAP Request to Server"
+                    + e.getMessage(), e);
         } finally {
             try {
                 if (soapConnection != null) {
                     soapConnection.close();
                 }
             } catch (SOAPException e) {
-                log.error("Error while closing the SOAP connection", e);
+                log.error("Error while closing the SOAP connection" + e.getMessage(), e);
             }
         }
     }
